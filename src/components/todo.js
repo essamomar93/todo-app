@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import useForm from '../hooks/form';
-
 import { v4 as uuid } from 'uuid';
 import List from './list';
 import Form from './form';
 import Header from './header';
 import Footer from './footer';
+
 
 const ToDo = () => {
 
@@ -14,7 +14,6 @@ const ToDo = () => {
   const { handleChange, handleSubmit } = useForm(addItem);
 
   function addItem(item) {
-    console.log(item);
     item.id = uuid();
     item.complete = false;
     setList([...list, item]);
@@ -46,17 +45,18 @@ const ToDo = () => {
 
   return (
     <>
-      <Header/>
+      <Header />
       <header className="toDoHeader">
         <h2>To Do List: {incomplete} items pending</h2>
       </header>
       <div className="content">
-      <Form handleSubmit={handleSubmit} handleChange={handleChange}  />
-      <List toggleComplete={toggleComplete} list={list} />
+        <Form handleSubmit={handleSubmit} handleChange={handleChange} />
+        <List toggleComplete={toggleComplete} list={list} deleteItem={deleteItem} setList={setList} />
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 };
 
 export default ToDo;
+
