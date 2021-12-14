@@ -10,13 +10,14 @@ import {
     Switch,
 } from '@blueprintjs/core';
 import { SettingsContext } from '../context/context'
+import Auth from './auth';
 
 
 function Form(props) {
     const settings = useContext(SettingsContext)
 
     return (
-
+        <Auth capability="create">
         <Card className="cardForm" interactive elevation={Elevation.FOUR}>
             <form onSubmit={props.handleSubmit}>
                 <FormGroup>
@@ -54,6 +55,8 @@ function Form(props) {
                 </FormGroup>
             </form>
         </Card>
+        </Auth>
+
     )
 }
 

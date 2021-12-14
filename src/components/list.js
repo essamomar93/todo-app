@@ -3,6 +3,7 @@ import React from 'react';
 import { useContext, useState, useEffect } from 'react';
 import { Card, Elevation, Button,ButtonGroup } from '@blueprintjs/core';
 import { SettingsContext } from '../context/context'
+import Auth from "./auth"
 
 function List(props) {
 
@@ -38,7 +39,7 @@ function List(props) {
       const list =  props.list.length >= settings.state.displayPerScreen ? activePage : props.list
 
     return (
-
+      <Auth capability="read">
         <div className={'cardDiv'}>
             {list.map(item => (
                 <Card className={'cardlist'} interactive elevation={Elevation.FOUR} key={item.id}>
@@ -46,7 +47,10 @@ function List(props) {
                     <p><small>Assigned to: {item.assignee}</small></p>
                     <p><small>Difficulty: {item.difficulty}</small></p>
                     <Button type="button" intent={item.complete ? 'success' : 'danger'} onClick={() => props.toggleComplete(item.id)}>Complete: {item.complete.toString()}</Button>
-                    <Button onClick={() => props.deleteItem(item.id)} type="button" intent={'danger'}> Delete Item</Button>
+                   
+                    <Auth capability="delete">
+                      <Button onClick={() => props.deleteItem(item.id)} type="button" intent={'danger'}> Delete Item</Button>
+                      </Auth> 
                     <hr />
                 </Card>
             ))}
@@ -64,6 +68,7 @@ function List(props) {
           </ButtonGroup>
         )}
         </div>
+        </Auth>
     )
 }
 
