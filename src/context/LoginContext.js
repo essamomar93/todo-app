@@ -1,75 +1,72 @@
-import React from 'react';
-import cookie from 'react-cookies';
+
+import React, { useEffect, useState } from "react";
+import superagent from 'superagent';
+import base64 from 'base-64';
 import jwt from 'jsonwebtoken';
-
-const testUsers = {
-  admin: {password:'password', name:'Administrator', role:'admin', capabilities:['create','read','update','delete']},
-  editor: { password: 'password', name: 'Editor', role: 'editor', capabilities: ['read', 'update']},
-  writer: { password: 'password', name: 'Writer', role: 'writer', capabilities: ['create']},
-};
-
+import cookie from 'react-cookies';
 export const LoginContext = React.createContext();
 
-class LoginProvider extends React.Component {
+export default function LoginProvider(props) {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      loggedIn: false,
-      can: this.can,
-      login: this.login,
-      logout: this.logout,
-      user: {capabilities:[]},
-    };
-  }
+    const API = 'https://todo-essam.herokuapp.com/';
+    
+    const [LoggedIn, setLoggedIn] = useState(false);
+    // const [user, setUser] = useState({});
+    const [user, setUser] = useState({ email: "", capabilities: [] });
 
-  can = (capability) => {
-    return this?.state?.user?.capabilities?.includes(capability);
-  }
+    // user.capabilities = ['read', 'create', 'update', 'delete'];
+    user.capabilities = ['read', 'create'];
 
-  login = (username, password) => {
-    if (testUsers[username]) {
-      // Create a "good" token, like you'd get from a server
-      const token = jwt.sign(testUsers[username], process.env.REACT_APP_SECRET||"essam");
-      this.validateToken(token);
-    }
-  }
-
-  logout = () => {
-    this.setLoginState(false, null, {});
-  };
-
-  validateToken = token => {
-    try {
-      let user = jwt.verify(token, process.env.REACT_APP_SECRET||"essam");
-      this.setLoginState(true, token, user);
-    }
-    catch (e) {
-      this.setLoginState(false, null, {});
-      console.log('Token Validation Error', e);
+    const loginFunction = async (username, password) => {
+        // it will update the LoggedIn flag into true
+        try {
+            const response = await superagent.post(`${API}/signin`).set('authorization', `Basic ${base64.encode(`${username}:${password}`)}`);
+            // console.log(response.body)
+            validateMyToken(response.body.token);
+        } catch (err) { }
     }
 
-  };
+    const logoutFunction = () => {
+        // it will update the LoggedIn flag into false
+        setLoggedIn(false);
+        setUser({});
+        cookie.remove('token');
+    }
 
-  setLoginState = (loggedIn, token, user) => {
-    cookie.save('auth', token);
-    this.setState({ token, loggedIn, user });
-  };
+    const validateMyToken = (token) => {
+        if (token) {
+            const user = jwt.decode(token);
+            console.log('user >>>', user);
+            setLoggedIn(true);
+            setUser(user);
+            cookie.save('token', token);
+        } else {
+            setLoggedIn(false);
+            setUser({});
+        }
+    }
+    useEffect(() => {
+        // check the token
+        const myTokenCookie = cookie.load('token');
+        validateMyToken(myTokenCookie);
+    }, []);
 
-  componentDidMount() {
-    const qs = new URLSearchParams(window.location.search);
-    const cookieToken = cookie.load('auth');
-    const token = qs.get('token') || cookieToken || null;
-    this.validateToken(token);
-  }
+    const can = (capability) => {
+        // chaining
+        //optional chaining
+        return user?.capabilities?.includes(capability);
+    }
 
-  render() {
+    const state = {
+        LoggedIn: LoggedIn,
+        loginFunction: loginFunction,
+        logoutFunction: logoutFunction,
+        user: user,
+        can: can
+    }
     return (
-      <LoginContext.Provider value={this.state}>
-        {this.props.children}
-      </LoginContext.Provider>
-    );
-  }
+        <LoginContext.Provider value={state}>
+            {props.children}
+        </LoginContext.Provider>
+    )
 }
-
-export default LoginProvider;

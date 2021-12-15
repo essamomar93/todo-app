@@ -1,50 +1,43 @@
-import React from 'react';
-import {When} from 'react-if';
+import React from "react";
+import { LoginContext } from "../context/LoginContext";
+import { When } from 'react-if';
+export default class login extends React.Component {
 
-import { LoginContext } from '../context/LoginContext';
+    static contextType = LoginContext;
+    constructor(props) {
+        super(props);
+        this.state = {
+            username: "",
+            password: ""
+        }
+    }
+    handleChange = (e) => {
+        this.setState({ [e.target.name]: e.target.value })
+    }
+    handleSubmit = (e) => {
+        e.preventDefault();//not to refresh the page
+        this.context.loginFunction(this.state.username, this.state.password);
+    }
 
-class Login extends React.Component {
-  static contextType = LoginContext;
+    render() {
+        return (
+            <>
+                <When condition={!this.context.LoggedIn}>
+                    <form onSubmit={this.handleSubmit}>
+                        <input placeholder="username" type='text' name='username' onChange={this.handleChange} />
+                        <input placeholder="password" type='password' name='password' onChange={this.handleChange} />
+                        <button type="submit">login</button>
+                    </form>
+                </When>
+                <When condition={this.context.LoggedIn}
+                >
+                    <div>
+                        {this.context.user.email}
+                    </div>
+                    <button onClick={this.context.logoutFunction}>logout</button>
+                </When>
 
-  constructor(props) {
-    super(props);
-    this.state = { username: '', password: '' };
-  }
-
-  handleChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
-  };
-
-  handleSubmit = e => {
-    e.preventDefault();
-    this.context.login(this.state.username, this.state.password);
-  };
-
-  render() {
-    return (
-      <>
-        <When condition={this.context.loggedIn}>
-          <button onClick={this.context.logout}>Log Out</button>
-        </When>
-
-        <When condition={!this.context.loggedIn}>
-          <form onSubmit={this.handleSubmit}>
-            <input
-              placeholder="UserName"
-              name="username"
-              onChange={this.handleChange}
-            />
-            <input
-              placeholder="password"
-              name="password"
-              onChange={this.handleChange}
-            />
-            <button>Login</button>
-          </form>
-        </When>
-      </>
-    );
-  }
+            </>
+        )
+    }
 }
-
-export default Login;
